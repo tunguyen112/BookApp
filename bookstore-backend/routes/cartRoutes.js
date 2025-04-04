@@ -1,95 +1,144 @@
 const express = require('express');
 const router = express.Router();
 const Cart = require('../models/Cart');
-
-router.get('/:userId', async (req, res) => {
-    try {
-        const cart = await Cart.findOne({ userId: req.params.userId }).populate({
-            path: 'cartItems.bookId',
-            select: 'title price image'
-        });
-
-        if (!cart) return res.status(404).json({ message: 'Giỏ hàng trống' });
-
-        res.json(cart.cartItems);
-    } catch (error) {
-        console.error('Lỗi lấy giỏ hàng:', error);
-        res.status(500).json({ error: 'Lỗi server' });
-    }
-});
+const Book = require('../models/Book');
 
 router.post('/add', async (req, res) => {
-    try {
-        const { userId, bookId, quantity } = req.body;
+    const { email, bookId, quantity } = req.body;
 
-        let cart = await Cart.findOne({ userId });
+    try {
+        let cart = await Cart.findOne({ email });
 
         if (!cart) {
-            cart = new Cart({ userId, cartItems: [] });
+            cart = new Cart({ email, cartItems: [] });
         }
 
-        const existingItem = cart.cartItems.find(item => item.bookId.toString() === bookId);
-        
-        if (existingItem) {
-            existingItem.quantity += quantity;
-            if (existingItem.quantity <= 0) {
-                cart.cartItems = cart.cartItems.filter(item => item.bookId.toString() !== bookId);
-            }
+        const book = await Book.findOne({ bookId });
+        if (!book) {
+            return res.status(404).json({ message: "Book not found" });
+        }
+
+        const itemIndex = cart.cartItems.findIndex(item => item.bookId === bookId);
+
+        if (itemIndex > -1) {
+            cart.cartItems[itemIndex].quantity += quantity;
         } else {
             cart.cartItems.push({ bookId, quantity });
         }
 
         await cart.save();
-        res.json(cart);
+        res.status(200).json(cart);
     } catch (error) {
-        console.error('Lỗi thêm sách vào giỏ hàng:', error);
-        res.status(500).json({ error: 'Lỗi server' });
+        console.error("Error adding to cart:", error);
+        res.status(500).json({ message: "Server Error", error: error.message });
     }
 });
 
-router.delete('/remove/:userId/:bookId', async (req, res) => {
+router.get('/:email', async (req, res) => {
+    const { email } = req.params;
+
     try {
-        const { userId, bookId } = req.params;
+        const cart = await Cart.findOne({ email });
 
-        let cart = await Cart.findOne({ userId });
-        if (!cart) return res.status(404).json({ message: 'Giỏ hàng trống' });
+        if (!cart) {
+            return res.status(404).json({ message: "Cart not found" });
+        }
 
-        cart.cartItems = cart.cartItems.filter(item => item.bookId.toString() !== bookId);
-        
-        await cart.save();
-        res.json(cart);
-    } catch (error) {
-        console.error('Lỗi xóa sách:', error);
-        res.status(500).json({ error: 'Lỗi server' });
-    }
-});
-
-router.delete('/clear/:userId', async (req, res) => {
-    try {
-        await Cart.findOneAndDelete({ userId: req.params.userId });
-        res.json({ message: 'Đã xóa toàn bộ giỏ hàng' });
-    } catch (error) {
-        console.error('Lỗi xóa giỏ hàng:', error);
-        res.status(500).json({ error: 'Lỗi server' });
-    }
-});
-
-router.get('/total/:userId', async (req, res) => {
-    try {
-        const cart = await Cart.findOne({ userId: req.params.userId }).populate({
-            path: 'cartItems.bookId',
-            select: 'price'
+        const bookIds = cart.cartItems.map(item => item.bookId);
+        const books = await Book.find({ bookId: { $in: bookIds } }); 
+        const cartWithDetails = cart.cartItems.map(item => {
+            const book = books.find(b => b.bookId === item.bookId);
+            return {
+                bookId: item.bookId,
+                quantity: item.quantity,
+                title: book ? book.title : "Unknown",
+                price: book ? book.price : 0,
+                image: book ? book.image : "",
+            };
         });
 
-        if (!cart) return res.json({ total: 0 });
-
-        const total = cart.cartItems.reduce((sum, item) => sum + item.bookId.price * item.quantity, 0);
-        
-        res.json({ total });
+        res.status(200).json({ email, cartItems: cartWithDetails });
     } catch (error) {
-        console.error('Lỗi tính tổng tiền:', error);
-        res.status(500).json({ error: 'Lỗi server' });
+        console.error("Error fetching cart:", error);
+        res.status(500).json({ message: "Server Error", error: error.message });
     }
 });
+
+router.post('/update', async (req, res) => {
+    const { email, bookId, change } = req.body;
+
+    try {
+        let userCart = await Cart.findOne({ email });
+
+        if (!userCart) {
+            return res.status(404).json({ message: "Không tìm thấy giỏ hàng" });
+        }
+
+        let item = userCart.cartItems.find(item => item.bookId === bookId);
+        
+        if (!item) {
+            return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+        }
+
+        if (item.quantity <= 1 && change === -1) {
+            return res.status(400).json({ message: "Số lượng không thể nhỏ hơn 1" });
+        }
+
+        item.quantity += change;
+
+        await userCart.save();
+        res.json({ cartItems: userCart.cartItems });
+    } catch (error) {
+        console.error("Lỗi cập nhật số lượng:", error);
+        res.status(500).json({ message: "Lỗi server" });
+    }
+});
+
+router.post('/remove', async (req, res) => {
+    const { email, bookId } = req.body;
+
+    try {
+        let cart = await Cart.findOne({ email });
+
+        if (!cart) {
+            return res.status(404).json({ message: "Cart not found" });
+        }
+
+        cart.cartItems = cart.cartItems.filter(item => item.bookId !== bookId);
+
+        await cart.save();
+        res.status(200).json({ message: "Item removed successfully", cartItems: cart.cartItems });
+    } catch (error) {
+        console.error("Error removing cart item:", error);
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+});
+
+router.post('/checkout', async (req, res) => {
+    const { email, bookIds } = req.body;
+  
+    if (!email || !bookIds || bookIds.length === 0) {
+      return res.status(400).json({ message: 'Dữ liệu không hợp lệ' });
+    }
+  
+    try {
+      // Tìm các sản phẩm trong giỏ hàng của người dùng
+      const cartItems = await Cart.find({ email, bookId: { $in: bookIds } });
+  
+      if (!cartItems || cartItems.length === 0) {
+        return res.status(404).json({ message: 'Không tìm thấy sản phẩm trong giỏ hàng' });
+      }
+  
+      // Tính tổng tiền
+      const totalPrice = cartItems.reduce((total, item) => {
+        return total + item.price * item.quantity; // Tổng tiền = giá * số lượng
+      }, 0);
+  
+      res.json({ totalPrice });
+    } catch (error) {
+      console.error('Lỗi khi tính tổng tiền:', error);
+      res.status(500).json({ message: 'Có lỗi xảy ra khi tính tổng tiền' });
+    }
+  });
 
 module.exports = router;

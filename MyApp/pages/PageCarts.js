@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,47 +6,148 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import CheckBox from 'react-native-check-box'; 
 import { UserContext } from './UserContext';
 
 export default function PageCarts() {
-  const { carts, setCarts } = useContext(UserContext);
+  const { user, carts, setCarts } = useContext(UserContext);
+
+  useEffect(() => {
+    const fetchCartData = async () => {
+      if (user && user.email) {
+        try {
+          const response = await fetch(`http://localhost:5000/api/cart/${user.email}`);
+          const data = await response.json();
+
+          if (response.ok) {
+            setCarts(data.cartItems);
+          } else {
+            Alert.alert('Lỗi', data.message || 'Không thể lấy giỏ hàng');
+          }
+        } catch (err) {
+          console.error('Lỗi khi tải giỏ hàng:', err);
+          Alert.alert('Lỗi', 'Có lỗi xảy ra khi tải giỏ hàng');
+        }
+      }
+    };
+
+    fetchCartData();
+  }, [user]);
+
+  const removeCartItem = async (bookId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/cart/remove`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email, bookId }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Không thể xóa sản phẩm');
+      }
+
+      const updatedResponse = await fetch(`http://localhost:5000/api/cart/${user.email}`);
+      const updatedCart = await updatedResponse.json();
+  
+      if (updatedResponse.ok) {
+        setCarts(updatedCart.cartItems);
+      } else {
+        throw new Error('Không thể cập nhật giỏ hàng');
+      }
+    } catch (error) {
+      Alert.alert('Lỗi', error.message);
+    }
+  };  
+
+  const updateCartItem = async (bookId, change) => {
+    try {
+        const response = await fetch(`http://localhost:5000/api/cart/update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: user.email, bookId, change }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            Alert.alert('Thông báo', result.message || 'Không thể cập nhật số lượng');
+            return;
+        }
+
+        const updatedResponse = await fetch(`http://localhost:5000/api/cart/${user.email}`);
+        const updatedCart = await updatedResponse.json();
+
+        if (!updatedResponse.ok) {
+            throw new Error('Không thể tải giỏ hàng sau khi cập nhật');
+        }
+
+        if (updatedCart?.cartItems) {
+            setCarts(updatedCart.cartItems);
+        } else {
+            throw new Error('Dữ liệu trả về không hợp lệ');
+        }
+    } catch (error) {
+        Alert.alert('Lỗi', error.message);
+    }
+};
 
   const handleIncreaseQty = (item) => {
-    const updatedCarts = carts.map((cartItem) =>
-      cartItem.id === item.id
-        ? { ...cartItem, qty: cartItem.qty + 1 }
-        : cartItem,
-    );
-    setCarts(updatedCarts);
+    updateCartItem(item.bookId, 1);
   };
-
+  
   const handleDecreaseQty = (item) => {
-    const updatedCarts = carts
-      .map((cartItem) =>
-        cartItem.id === item.id && cartItem.qty > 1
-          ? { ...cartItem, qty: cartItem.qty - 1 }
-          : cartItem,
-      )
-      .filter((cartItem) => cartItem.qty > 0);
-    setCarts(updatedCarts);
-  };
+    updateCartItem(item.bookId, -1); 
+  };  
 
   const handleRemoveItem = (item) => {
-    const updatedCarts = carts.filter((cartItem) => cartItem.id !== item.id);
-    setCarts(updatedCarts);
+    removeCartItem(item.bookId);
   };
 
   const handleToggleSelect = (item) => {
     const updatedCarts = carts.map((cartItem) =>
-      cartItem.id === item.id
+      cartItem.bookId === item.bookId
         ? { ...cartItem, selected: !cartItem.selected }
         : cartItem,
     );
     setCarts(updatedCarts);
   };
 
+  const handleCheckout = async () => {
+    const selectedItems = carts.filter(item => item.selected);  // Lọc các sản phẩm đã được chọn
+    console.log("Selected Items:", selectedItems);
+    
+    if (selectedItems.length === 0) {
+      Alert.alert('Thông báo', 'Vui lòng chọn ít nhất một sản phẩm để thanh toán');
+      return;
+    }
+  
+    const bookIds = selectedItems.map(item => item.bookId); // Lấy danh sách bookId của các sản phẩm đã chọn
+    console.log("Book IDs:", bookIds);
+  
+    try {
+      const response = await fetch('http://localhost:5000/api/cart/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email, bookIds }),
+      });
+  
+      const result = await response.json();
+      console.log("Server Response:", result); // Kiểm tra dữ liệu trả về từ server
+  
+      if (response.ok) {
+        // Nhận tổng tiền từ backend và hiển thị lên giao diện
+        Alert.alert('Thông báo', `Tổng tiền: ${result.totalPrice.toLocaleString()} VNĐ`);
+      } else {
+        Alert.alert('Lỗi', result.message || 'Không thể tính tổng tiền');
+      }
+    } catch (error) {
+      console.error('Lỗi khi thanh toán:', error);
+      Alert.alert('Lỗi', 'Có lỗi xảy ra khi thanh toán');
+    }
+  };
+  
   const renderItem = ({ item }) => (
     <View style={styles.itemContainer}>
       <CheckBox
@@ -54,7 +155,7 @@ export default function PageCarts() {
         onClick={() => handleToggleSelect(item)}
         checkBoxColor="#007BFF"
       />
-      <Image source={item.image} style={styles.itemImage} />
+      <Image source={{ uri: item.image }} style={styles.itemImage} />
       <View style={styles.itemDetails}>
         <Text style={styles.itemTitle}>{item.title}</Text>
         <Text style={styles.itemPrice}>{item.price.toLocaleString()} VNĐ</Text>
@@ -65,7 +166,7 @@ export default function PageCarts() {
           >
             <Text style={styles.qtyButtonText}>-</Text>
           </TouchableOpacity>
-          <Text style={styles.qtyText}>{item.qty}</Text>
+          <Text style={styles.qtyText}>{item.quantity}</Text>
           <TouchableOpacity
             style={styles.qtyButton}
             onPress={() => handleIncreaseQty(item)}
@@ -83,26 +184,19 @@ export default function PageCarts() {
     </View>
   );
 
-  const getTotalPrice = () => {
-    return carts
-      .filter((item) => item.selected)
-      .reduce((total, item) => total + item.price * item.qty, 0) 
-      .toLocaleString();
-  };
-  
-
   return (
     <View style={styles.container}>
       <FlatList
         data={carts}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.bookId.toString()}
+        extraData={carts}
         ListEmptyComponent={<Text style={styles.emptyText}>Giỏ hàng trống</Text>}
       />
       <View style={styles.totalContainer}>
         <View>
           <Text>Thành tiền</Text>
-          <Text style={styles.totalText}>{getTotalPrice()} VNĐ</Text>
+          <Text style={styles.totalText}> VNĐ</Text>
         </View>
         <TouchableOpacity
           style={{
@@ -111,10 +205,10 @@ export default function PageCarts() {
             paddingHorizontal: 20, 
             borderRadius: 5, 
             alignItems: 'center',
-            }}>
-            <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
-              Thanh toán
-            </Text>
+          }}>
+          <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }} onPress={handleCheckout}>
+            Thanh toán
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -193,12 +287,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
-  emptyText: {
-    fontSize: 18,
-    color: '#333',
-    textAlign: 'center',
-    marginTop: 20,
-  },
   totalContainer: {
     flexDirection: 'row',
     padding: 15,
@@ -207,6 +295,12 @@ const styles = StyleSheet.create({
     borderColor: '#DDD',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#333',
+    textAlign: 'center',
+    marginTop: 20,
   },
   totalText: {
     fontSize: 18,

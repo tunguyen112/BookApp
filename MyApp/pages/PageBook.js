@@ -6,8 +6,8 @@ import { UserContext } from './UserContext';
 export default function PageBook({ route }) {
   const { bookId } = route.params;
   const navigation = useNavigation();
+  const { user, setUser } = useContext(UserContext);
   const { carts, setCarts } = useContext(UserContext);
-
   const [selectedBook, setSelectedBook] = useState(null);
   const [error, setError] = useState(null);
 
@@ -35,26 +35,35 @@ export default function PageBook({ route }) {
     );
   }
 
-  const addToCart = () => {
-    const existingItem = carts.find((cartItem) => cartItem.id === selectedBook.bookId);
-    if (existingItem) {
-      const updatedCarts = carts.map((cartItem) =>
-        cartItem.id === selectedBook.bookId
-          ? { ...cartItem, qty: cartItem.qty + 1 }
-          : cartItem
-      );
-      setCarts(updatedCarts);
-    } else {
-      const newCartItem = {
-        id: selectedBook.bookId,
-        title: selectedBook.title,
-        price: selectedBook.price,
-        image: { uri: selectedBook.image }, 
-        qty: 1,
-      };
-      setCarts([...carts, newCartItem]);
+  const addToCart = async () => {
+    if (!user) {
+      Alert.alert('Lỗi', 'Bạn cần đăng nhập để thêm vào giỏ hàng.');
+      return;
     }
-    Alert.alert('Thành công', 'Sản phẩm đã được thêm vào giỏ hàng.');
+  
+    try {
+      const response = await fetch('http://localhost:5000/api/cart/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: user.email,
+          bookId: selectedBook.bookId,
+          quantity: 1,
+        }),
+      });
+  
+      const data = await response.json();
+      if (response.ok) {
+        setCarts(data.items);
+        Alert.alert('Thành công', 'Sản phẩm đã được thêm vào giỏ hàng.');
+      } else {
+        Alert.alert('Lỗi', data.message || 'Không thể thêm vào giỏ hàng.');
+      }
+    } catch (error) {
+      Alert.alert('Lỗi', 'Có lỗi xảy ra khi thêm vào giỏ hàng.');
+    }
   };
 
   return (

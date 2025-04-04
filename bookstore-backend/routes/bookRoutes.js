@@ -33,7 +33,6 @@ router.post('/add', async (req, res) => {
 });
 
 router.get('/:id', async (req, res) => {
-    console.log("Received ID:", req.params.id); 
     try {
         const book = await Book.findOne({ bookId: parseInt(req.params.id) });
         if (!book) {
