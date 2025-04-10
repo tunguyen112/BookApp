@@ -114,7 +114,7 @@ router.post('/remove', async (req, res) => {
     }
 });
 
-router.post('/checkout', async (req, res) => {
+router.post('/totalprice', async (req, res) => {
     const { email, bookIds } = req.body;
   
     if (!email || !bookIds || bookIds.length === 0) {
@@ -122,23 +122,38 @@ router.post('/checkout', async (req, res) => {
     }
   
     try {
-      // Tìm các sản phẩm trong giỏ hàng của người dùng
-      const cartItems = await Cart.find({ email, bookId: { $in: bookIds } });
+      const cart = await Cart.findOne({ email });
   
-      if (!cartItems || cartItems.length === 0) {
-        return res.status(404).json({ message: 'Không tìm thấy sản phẩm trong giỏ hàng' });
+      if (!cart || !cart.cartItems || cart.cartItems.length === 0) {
+        return res.status(404).json({ message: 'Không tìm thấy giỏ hàng' });
       }
   
-      // Tính tổng tiền
-      const totalPrice = cartItems.reduce((total, item) => {
-        return total + item.price * item.quantity; // Tổng tiền = giá * số lượng
+      const selectedItems = cart.cartItems.filter(item =>
+        bookIds.includes(item.bookId)
+      );
+  
+      if (selectedItems.length === 0) {
+        return res.status(404).json({ message: 'Không tìm thấy sản phẩm được chọn' });
+      }
+  
+      const Book = require('../models/Book'); 
+      const books = await Book.find({ bookId: { $in: bookIds } });
+
+      const priceMap = {};
+      books.forEach(book => {
+      priceMap[book.bookId] = book.price;
+      });
+
+      const totalPrice = selectedItems.reduce((total, item) => {
+      const price = priceMap[item.bookId] || 0;
+      return total + price * item.quantity;
       }, 0);
   
-      res.json({ totalPrice });
+      return res.json({ totalPrice });
     } catch (error) {
       console.error('Lỗi khi tính tổng tiền:', error);
       res.status(500).json({ message: 'Có lỗi xảy ra khi tính tổng tiền' });
     }
-  });
+  });  
 
 module.exports = router;

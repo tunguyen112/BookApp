@@ -6,7 +6,6 @@ const CartSchema = new mongoose.Schema({
         {
             bookId: { type: Number, required: true }, 
             quantity: { type: Number, default: 1 },
-            selected: { type: Boolean, default: false},
         }
     ],
 });
