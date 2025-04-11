@@ -68,7 +68,7 @@ const BookScreen = ({ route }) => {
         </TouchableOpacity>
 
         <View style={styles.iconContainer}>
-          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Search')}>
+          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('SearchScreen')}>
             <Image source={require('./assets/search.png')} style={{ width: 30, height: 30 }} />
           </TouchableOpacity>
 

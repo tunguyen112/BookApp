@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, FlatList, SectionList, TextInput, TouchableOpacity, Text, Image, StyleSheet } from 'react-native';
+import {
+  SafeAreaView,
+  SectionList,
+  TouchableOpacity,
+  Text,
+  Image,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 
-const removeVietnameseTones = (str) => {
-  return str
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/g, "d")
-    .replace(/Đ/g, "D");
-};
-
 const HomeScreen = () => {
   const navigation = useNavigation();
-  const [searchText, setSearchText] = useState('');
   const [books, setBooks] = useState([]);
   const [groupedBooks, setGroupedBooks] = useState([]);
 
@@ -30,26 +29,14 @@ const HomeScreen = () => {
     fetchBooks();
   }, []);
 
-  const filteredBooks = searchText
-    ? books.filter((book) => {
-        const normalizedSearchText = removeVietnameseTones(searchText.toLowerCase());
-        const normalizedTitle = removeVietnameseTones(book.title.toLowerCase());
-        return normalizedTitle.includes(normalizedSearchText);
-      })
-    : [];
-
   useEffect(() => {
     const categories = Array.from(new Set(books.map((book) => book.category)));
     const grouped = categories.map((category) => ({
       title: category,
-      data: books.filter(
-        (book) =>
-          book.category === category &&
-          book.title.toLowerCase().includes(searchText.toLowerCase())
-      ),
+      data: books.filter((book) => book.category === category),
     }));
     setGroupedBooks(grouped);
-  }, [searchText, books]);
+  }, [books]);
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
@@ -68,44 +55,38 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TextInput
-        style={styles.searchBar}
-        placeholder="Tìm kiếm"
-        value={searchText}
-        onChangeText={setSearchText}
+      <TouchableOpacity onPress={() => navigation.navigate('SearchScreen')}>
+        <View style={styles.fakeSearchBar}>
+          <Text style={{ color: '#aaa' }}>Tìm kiếm</Text>
+        </View>
+      </TouchableOpacity>
+
+      <SectionList
+        sections={groupedBooks}
+        keyExtractor={(item) => item.bookId.toString()}
+        renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
+        contentContainerStyle={styles.listContainer}
       />
-      {filteredBooks.length > 0 ? (
-        <FlatList
-          data={filteredBooks}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.bookId.toString()}
-        />
-      ) : (
-        <SectionList
-          sections={groupedBooks}
-          keyExtractor={(item) => item.bookId.toString()}
-          renderItem={renderItem}
-          renderSectionHeader={renderSectionHeader}
-          contentContainerStyle={styles.listContainer}
-        />
-      )}
     </SafeAreaView>
   );
 };
+
+export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
   },
-  searchBar: {
+  fakeSearchBar: {
     height: 40,
     borderColor: '#ddd',
     borderWidth: 1,
     borderRadius: 10,
     marginBottom: 10,
     paddingHorizontal: 10,
-    fontSize: 16,
+    justifyContent: 'center',
   },
   listContainer: {
     paddingBottom: 10,
@@ -143,4 +124,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeScreen;
+

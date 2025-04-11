@@ -5,6 +5,7 @@ import LoginScreen from './screens/LoginScreen.js';
 import RegisterScreen from './screens/RegisterScreen.js';
 import ResetPasswordScreen from './screens/ResetPasswordScreen.js';
 import HomeTab from './screens/HomeTab.js';
+import SearchScreen from './screens/SearchScreen.js'
 import ProductScreen from './screens/ProductScreen.js';
 import BookScreen from './screens/BookScreen.js';
 import CartScreen from './screens/CartScreen.js';
@@ -41,6 +42,12 @@ const App = () => {
               name="Home"
               component={HomeTab}
               options={{ headerShown: false }}
+            />
+
+            <Stack.Screen 
+              name="SearchScreen" 
+              component={SearchScreen} 
+              options={{ title: 'Tìm kiếm' }} 
             />
 
             <Stack.Screen
