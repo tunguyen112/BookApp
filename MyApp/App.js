@@ -1,15 +1,15 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import LoginScreen from './pages/LoginScreen.js'; 
-import RegisterScreen from './pages/RegisterScreen.js';
-import ResetPasswordScreen from './pages/ResetPasswordScreen.js';
-import HomeTab from './pages/HomeTab.js';
-import ProductScreen from './pages/ProductScreen.js';
-import BookScreen from './pages/BookScreen.js';
-import CartScreen from './pages/CartScreen.js';
-import EditScreen from './pages/EditScreen.js';
-import { UserContextProvider } from './pages/UserContext.js'; 
+import LoginScreen from './screens/LoginScreen.js'; 
+import RegisterScreen from './screens/RegisterScreen.js';
+import ResetPasswordScreen from './screens/ResetPasswordScreen.js';
+import HomeTab from './screens/HomeTab.js';
+import ProductScreen from './screens/ProductScreen.js';
+import BookScreen from './screens/BookScreen.js';
+import CartScreen from './screens/CartScreen.js';
+import EditScreen from './screens/EditScreen.js';
+import { UserContextProvider } from './screens/UserContext.js'; 
 
 const Stack = createNativeStackNavigator();
 
