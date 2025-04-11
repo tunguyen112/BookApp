@@ -45,16 +45,4 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-router.post('/cart', async (req, res) => {
-    try {
-        const { bookId, title, price, image, qty } = req.body;
-        const newCartItem = { bookId, title, price, image, qty };
-        const cart = await Cart.create(newCartItem);
-        res.json(cart);
-    } catch (error) {
-        res.status(500).json({ message: 'Lỗi server' });
-    }
-});
-
-
 module.exports = router;

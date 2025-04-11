@@ -1,14 +1,14 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import PageLogin from './pages/PageLogin.js'; 
-import PageRegister from './pages/PageRegister.js';
-import ResetPassword from './pages/ResetPassword.js';
-import PageHome from './pages/PageHome.js';
-import PageProduct from './pages/PageProduct.js';
-import PageBook from './pages/PageBook.js';
-import PageCarts from './pages/PageCarts.js';
-import PageEdit from './pages/PageEdit.js';
+import LoginScreen from './pages/LoginScreen.js'; 
+import RegisterScreen from './pages/RegisterScreen.js';
+import ResetPasswordScreen from './pages/ResetPasswordScreen.js';
+import HomeTab from './pages/HomeTab.js';
+import ProductScreen from './pages/ProductScreen.js';
+import BookScreen from './pages/BookScreen.js';
+import CartScreen from './pages/CartScreen.js';
+import EditScreen from './pages/EditScreen.js';
 import { UserContextProvider } from './pages/UserContext.js'; 
 
 const Stack = createNativeStackNavigator();
@@ -17,53 +17,53 @@ const App = () => {
   return (
     <UserContextProvider>
         <NavigationContainer>
-          <Stack.Navigator initialRouteName="Login">
+          <Stack.Navigator initialRouteName="LoginScreen">
             
             <Stack.Screen
-              name="Login"
-              component={PageLogin}
+              name="LoginScreen"
+              component={LoginScreen}
               options={{ headerShown: false }}
             />
             
             <Stack.Screen
-              name="Register"
-              component={PageRegister}
+              name="RegisterScreen"
+              component={RegisterScreen}
               options={{ headerShown: false }}
             />
 
             <Stack.Screen
-              name="Resetpassword"
-              component={ResetPassword}
+              name="ResetpasswordScreen"
+              component={ResetPasswordScreen}
               options={{ headerShown: false }}
             />
 
             <Stack.Screen
               name="Home"
-              component={PageHome}
+              component={HomeTab}
               options={{ headerShown: false }}
             />
 
             <Stack.Screen
-              name="PageProduct"
-              component={PageProduct}
+              name="ProductScreen"
+              component={ProductScreen}
               options={{ headerShown: false }}
             />
 
             <Stack.Screen
-              name="PageBook"
-              component={PageBook}
+              name="BookScreen"
+              component={BookScreen}
               options={{ headerShown: false }}
             />
 
             <Stack.Screen
-              name="Carts"
-              component={PageCarts}
+              name="CartScreen"
+              component={CartScreen}
               options={{ headerShown: true }}
             />
 
             <Stack.Screen
-              name="EditProfile"
-              component={PageEdit}
+              name="EditScreen"
+              component={EditScreen}
               options={{
                         title: 'EditProfile',
                         headerStyle: {

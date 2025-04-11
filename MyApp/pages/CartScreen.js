@@ -1,18 +1,12 @@
 import React, { useContext, useState, useCallback } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  FlatList,
-  Image,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { StyleSheet, Text, View, FlatList, Image, TouchableOpacity, Alert } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import CheckBox from 'react-native-check-box'; 
 import { UserContext } from './UserContext';
+import axios from 'axios';
 
-export default function PageCarts() {
+const CartScreen = () => {
+  const navigation = useNavigation();
   const { user } = useContext(UserContext);
   const [carts, setCarts] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
@@ -22,23 +16,16 @@ export default function PageCarts() {
       const fetchCartData = async () => {
         if (user && user.email) {
           try {
-            const response = await fetch(`http://localhost:5000/api/cart/${user.email}`);
-            const data = await response.json();
-  
-            if (response.ok) {
-              const items = data.cartItems.map(item => ({ ...item, selected: false }));
-              setCarts(items);
-              setTotalPrice(0);
-            } else {
-              Alert.alert('Lỗi', data.message || 'Không thể lấy giỏ hàng');
-            }
+            const { data } = await axios.get(`http://localhost:5000/api/cart/${user.email}`);
+            const items = data.cartItems.map(item => ({ ...item, selected: false }));
+            setCarts(items);
+            setTotalPrice(0);
           } catch (err) {
             console.error('Lỗi khi tải giỏ hàng:', err);
-            Alert.alert('Lỗi', 'Có lỗi xảy ra khi tải giỏ hàng');
+            Alert.alert('Lỗi', err.response?.data?.message || 'Không thể lấy giỏ hàng');
           }
         }
       };
-  
       fetchCartData();
     }, [user])
   );
@@ -48,24 +35,15 @@ export default function PageCarts() {
       setTotalPrice(0);
       return;
     }
-
+  
     const bookIds = selectedItems.map(item => item.bookId);
-
+  
     try {
-      const response = await fetch('http://localhost:5000/api/cart/totalprice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user.email, bookIds }),
+      const { data } = await axios.post('http://localhost:5000/api/cart/totalprice', {
+        email: user.email,
+        bookIds,
       });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setTotalPrice(result.totalPrice);
-      } else {
-        setTotalPrice(0);
-        console.error('Không thể tính tổng tiền:', result.message);
-      }
+      setTotalPrice(data.totalPrice);
     } catch (error) {
       console.error('Lỗi khi tính tổng tiền:', error);
       setTotalPrice(0);
@@ -74,78 +52,50 @@ export default function PageCarts() {
 
   const updateCartItem = async (bookId, change) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/cart/update`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user.email, bookId, change }),
+      await axios.post('http://localhost:5000/api/cart/update', {
+        email: user.email,
+        bookId,
+        change,
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        Alert.alert('Thông báo', result.message || 'Không thể cập nhật số lượng');
-        return;
-      }
-
-      const updatedResponse = await fetch(`http://localhost:5000/api/cart/${user.email}`);
-      const updatedCart = await updatedResponse.json();
-
-      if (!updatedResponse.ok) {
-        throw new Error('Không thể tải giỏ hàng sau khi cập nhật');
-      }
-
-      if (updatedCart?.cartItems) {
-        const updatedItems = updatedCart.cartItems.map((item) => {
-          const oldItem = carts.find(c => c.bookId === item.bookId);
-          return {
-            ...item,
-            selected: oldItem ? oldItem.selected : false,
-          };
-        });
-
-        setCarts(updatedItems);
-        const selectedItems = updatedItems.filter(item => item.selected);
-        calculateTotalPrice(selectedItems);
-      } else {
-        throw new Error('Dữ liệu trả về không hợp lệ');
-      }
+  
+      const { data } = await axios.get(`http://localhost:5000/api/cart/${user.email}`);
+      const updatedItems = data.cartItems.map((item) => {
+        const oldItem = carts.find(c => c.bookId === item.bookId);
+        return {
+          ...item,
+          selected: oldItem ? oldItem.selected : false,
+        };
+      });
+  
+      setCarts(updatedItems);
+      const selectedItems = updatedItems.filter(item => item.selected);
+      calculateTotalPrice(selectedItems);
     } catch (error) {
-      Alert.alert('Lỗi', error.message);
+      Alert.alert('Lỗi', error.response?.data?.message || 'Không thể cập nhật số lượng');
     }
   };
 
   const removeCartItem = async (bookId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/cart/remove`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user.email, bookId }),
+      await axios.post('http://localhost:5000/api/cart/remove', {
+        email: user.email,
+        bookId,
       });
-
-      if (!response.ok) {
-        throw new Error('Không thể xóa sản phẩm');
-      }
-
-      const updatedResponse = await fetch(`http://localhost:5000/api/cart/${user.email}`);
-      const updatedCart = await updatedResponse.json();
-
-      if (updatedResponse.ok) {
-        const updatedItems = updatedCart.cartItems.map((item) => {
-          const oldItem = carts.find(c => c.bookId === item.bookId);
-          return {
-            ...item,
-            selected: oldItem ? oldItem.selected : false,
-          };
-        });
-
-        setCarts(updatedItems);
-        const selectedItems = updatedItems.filter(item => item.selected);
-        calculateTotalPrice(selectedItems);
-      } else {
-        throw new Error('Không thể cập nhật giỏ hàng');
-      }
+  
+      const { data } = await axios.get(`http://localhost:5000/api/cart/${user.email}`);
+      const updatedItems = data.cartItems.map((item) => {
+        const oldItem = carts.find(c => c.bookId === item.bookId);
+        return {
+          ...item,
+          selected: oldItem ? oldItem.selected : false,
+        };
+      });
+  
+      setCarts(updatedItems);
+      const selectedItems = updatedItems.filter(item => item.selected);
+      calculateTotalPrice(selectedItems);
     } catch (error) {
-      Alert.alert('Lỗi', error.message);
+      Alert.alert('Lỗi', error.response?.data?.message || 'Không thể xóa sản phẩm');
     }
   };
 
@@ -184,41 +134,35 @@ export default function PageCarts() {
 
   const handleCheckout = async () => {
     const selectedItems = carts.filter(item => item.selected);  
-    
+  
     if (selectedItems.length === 0) {
       Alert.alert('Thông báo', 'Vui lòng chọn ít nhất một sản phẩm để thanh toán');
       return;
     }
-
+  
     const bookIds = selectedItems.map(item => item.bookId); 
-
+  
     try {
-      const response = await fetch('http://localhost:5000/api/cart/totalprice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user.email, bookIds }),
+      const { data } = await axios.post('http://localhost:5000/api/cart/totalprice', {
+        email: user.email,
+        bookIds,
       });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        Alert.alert('Thông báo', `Tổng tiền: ${result.totalPrice.toLocaleString()} VNĐ`);
-      } else {
-        Alert.alert('Lỗi', result.message || 'Không thể tính tổng tiền');
-      }
+      Alert.alert('Thông báo', `Tổng tiền: ${data.totalPrice.toLocaleString()} VNĐ`);
     } catch (error) {
       console.error('Lỗi khi thanh toán:', error);
-      Alert.alert('Lỗi', 'Có lỗi xảy ra khi thanh toán');
+      Alert.alert('Lỗi', error.response?.data?.message || 'Có lỗi xảy ra khi thanh toán');
     }
   };
 
   const renderItem = ({ item }) => (
+  <TouchableOpacity onPress={() => navigation.navigate('BookScreen', { bookId: item.bookId })}>
     <View style={styles.itemContainer}>
       <CheckBox
         isChecked={item.selected}
         onClick={() => handleToggleSelect(item)}
         checkBoxColor="#007BFF"
       />
+      
       <Image source={{ uri: item.image }} style={styles.itemImage} />
       <View style={styles.itemDetails}>
         <Text style={styles.itemTitle}>{item.title}</Text>
@@ -239,6 +183,7 @@ export default function PageCarts() {
           </TouchableOpacity>
         </View>
       </View>
+      
       <TouchableOpacity
         style={styles.removeButton}
         onPress={() => handleRemoveItem(item)}
@@ -246,6 +191,7 @@ export default function PageCarts() {
         <Text style={styles.removeButtonText}>Xóa</Text>
       </TouchableOpacity>
     </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -288,6 +234,8 @@ export default function PageCarts() {
     </View>
   );
 }
+
+export default CartScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -384,9 +332,6 @@ const styles = StyleSheet.create({
   selectAllContainer: {
     paddingVertical: 10,
     paddingHorizontal: 10,
-    backgroundColor: '#FFF',
-    borderBottomWidth: 1,
-    borderColor: '#DDD',
   },
   selectAllButton: {
     alignSelf: 'flex-start',

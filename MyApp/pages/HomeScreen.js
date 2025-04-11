@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView, FlatList, SectionList, TextInput, TouchableOpacity, Text, Image, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 
 const removeVietnameseTones = (str) => {
@@ -10,7 +11,8 @@ const removeVietnameseTones = (str) => {
     .replace(/Đ/g, "D");
 };
 
-const HomePage = ({ navigation }) => {
+const HomeScreen = () => {
+  const navigation = useNavigation();
   const [searchText, setSearchText] = useState('');
   const [books, setBooks] = useState([]);
   const [groupedBooks, setGroupedBooks] = useState([]);
@@ -52,7 +54,7 @@ const HomePage = ({ navigation }) => {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate('PageBook', { bookId: item.bookId })}
+      onPress={() => navigation.navigate('BookScreen', { bookId: item.bookId })}
     >
       <Image source={{ uri: item.image }} style={styles.cardImage} />
       <Text style={styles.cardTitle}>{item.title}</Text>
@@ -141,4 +143,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomePage;
+export default HomeScreen;

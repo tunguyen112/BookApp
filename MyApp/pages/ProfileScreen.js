@@ -2,8 +2,9 @@ import { Image, View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Mod
 import { useState, useEffect, useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { UserContext } from './UserContext';
+import axios from 'axios';
 
-export default function PageProfile() {
+const ProfileScreen = () => {
     const { user, setuser } = useContext(UserContext);
     const [userInfo, setUserInfo] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -14,11 +15,10 @@ export default function PageProfile() {
     const navigation = useNavigation();
 
     useEffect(() => {
-        if (user.email) { 
-            fetch(`http://localhost:5000/api/user/${user.email}`)
-                .then(response => response.json())
-                .then(data => {
-                    setUserInfo(data);
+        if (user.email) {
+            axios.get(`http://localhost:5000/api/user/${user.email}`)
+                .then(response => {
+                    setUserInfo(response.data);
                     setLoading(false);
                 })
                 .catch(error => {
@@ -33,32 +33,27 @@ export default function PageProfile() {
             Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ thông tin!');
             return;
         }
-    
+
         if (newPassword !== confirmPassword) {
             Alert.alert('Lỗi', 'Mật khẩu xác nhận không khớp!');
             return;
         }
-    
+
         try {
-            const response = await fetch(`http://localhost:5000/api/user/change-password`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: user.email, oldPassword, newPassword }),
+            const response = await axios.post(`http://localhost:5000/api/user/change-password`, {
+                email: user.email,
+                oldPassword,
+                newPassword,
             });
-    
-            const data = await response.json();
-            if (response.ok) {
-                Alert.alert('Thành công', 'Mật khẩu đã được cập nhật!');
-                setModalVisible(false);
-                setOldPassword('');
-                setNewPassword('');
-                setConfirmPassword('');
-            } else {
-                Alert.alert('Lỗi', data.message || 'Có lỗi xảy ra!');
-            }
+
+            Alert.alert('Thành công', 'Mật khẩu đã được cập nhật!');
+            setModalVisible(false);
+            setOldPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
         } catch (error) {
-            Alert.alert('Lỗi', 'Không thể cập nhật mật khẩu!');
             console.error(error);
+            Alert.alert('Lỗi', error.response?.data?.message || 'Không thể cập nhật mật khẩu!');
         }
     };
 
@@ -71,7 +66,7 @@ export default function PageProfile() {
                     <View style={styles.profileContainer}>
                         <Image source={require('./assets/avatar.png')} style={styles.avatarStyle} />
                         <Text style={styles.username}>{userInfo.firstname} {userInfo.lastname}</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('EditProfile')}>
+                        <TouchableOpacity onPress={() => navigation.navigate('EditScreen')}>
                             <Image source={require('./assets/compose.png')} style={{ width: 30, height: 30 }} />
                         </TouchableOpacity>
                     </View>
@@ -91,10 +86,7 @@ export default function PageProfile() {
                     <Text style={styles.userInfoTitle}>Address:</Text>
                     <Text style={styles.textstyle}>{userInfo.housenumber} {userInfo.street} {userInfo.city}</Text>
 
-                    <TouchableOpacity
-                        style={styles.changePasswordButton}
-                        onPress={() => setModalVisible(true)}
-                    >
+                    <TouchableOpacity style={styles.changePasswordButton} onPress={() => setModalVisible(true)}>
                         <Text style={styles.changePasswordText}>Đổi mật khẩu</Text>
                     </TouchableOpacity>
 
@@ -102,7 +94,7 @@ export default function PageProfile() {
                         style={styles.logoutButton}
                         onPress={() => {
                             setuser({ id: "", email: "", username: "" });
-                            navigation.navigate('Login');
+                            navigation.navigate('LoginScreen');
                         }}
                     >
                         <Text style={styles.logoutText}>Đăng xuất</Text>
@@ -153,7 +145,9 @@ export default function PageProfile() {
             </Modal>
         </View>
     );
-}
+};
+
+export default ProfileScreen;
 
 const styles = StyleSheet.create({
     container: {

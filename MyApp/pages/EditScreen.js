@@ -1,12 +1,10 @@
 import { ScrollView, View, Text, TextInput, Image, StyleSheet, Alert } from 'react-native';
 import { useState, useEffect, useContext } from 'react';
-import SQLite from 'react-native-sqlite-storage';
 import { useNavigation } from '@react-navigation/native';
 import { UserContext } from './UserContext';
+import axios from 'axios';
 
-const db = SQLite.openDatabase("shoponline.db");
-
-export default function PageEdit() {
+const EditScreen = () => {
   const navigation = useNavigation();
   const { user, setuser } = useContext(UserContext);
   const [userInfo, setUserInfo] = useState(null);
@@ -20,75 +18,66 @@ export default function PageEdit() {
   const [city, ganCity] = useState('');
 
   useEffect(() => {
-    if (user.email) { 
-        fetch(`http://localhost:5000/api/user/${user.email}`)
-            .then(response => response.json())
-            .then(data => {
-                setUserInfo(data);
-                ganFirstname(data.firstname || '');
-                ganLastname(data.lastname || '');
-                ganUsername(data.username || '');
-                ganEmail(data.email || '');
-                ganphonenumber(data.phonenumber || '');
-                ganHousenumber(data.housenumber || '');
-                ganStreet(data.street || '');
-                ganCity(data.city || '');
-            })
-            .catch(error => {
-                console.error('Lỗi khi lấy thông tin người dùng:', error);
-            });
+    if (user.email) {
+      axios.get(`http://localhost:5000/api/user/${user.email}`)
+        .then(response => {
+          const data = response.data;
+          setUserInfo(data);
+          ganFirstname(data.firstname || '');
+          ganLastname(data.lastname || '');
+          ganUsername(data.username || '');
+          ganEmail(data.email || '');
+          ganphonenumber(data.phonenumber || '');
+          ganHousenumber(data.housenumber || '');
+          ganStreet(data.street || '');
+          ganCity(data.city || '');
+        })
+        .catch(error => {
+          console.error('Lỗi khi lấy thông tin người dùng:', error);
+        });
     }
-}, [user.email]);
+  }, [user.email]);
 
-const updateUserInfo = async () => {
-  try {
-      const response = await fetch(`http://localhost:5000/api/user/${user.email}`, {
-          method: "PUT",
-          headers: {
-              "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-              firstname,
-              lastname,
-              username,
-              phonenumber,
-              housenumber,
-              street,
-              city,
-          }),
+  const updateUserInfo = async () => {
+    try {
+      const response = await axios.put(`http://localhost:5000/api/user/${user.email}`, {
+        firstname,
+        lastname,
+        username,
+        phonenumber,
+        housenumber,
+        street,
+        city,
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.status === 200) {
         Alert.alert("Thành công", "Cập nhật thông tin thành công!", [
           { text: 'OK', onPress: () => navigation.navigate('Home') }
         ]);
       } else {
-          Alert.alert("Lỗi", data.message || "Có lỗi xảy ra khi cập nhật.");
+        Alert.alert("Lỗi", response.data.message || "Có lỗi xảy ra khi cập nhật.");
       }
-  } catch (error) {
+    } catch (error) {
       console.error("Lỗi khi cập nhật thông tin:", error);
       Alert.alert("Lỗi", "Không thể kết nối đến server.");
-  }
-};
+    }
+  };
 
-useEffect(() => {
-  navigation.setOptions({
+  useEffect(() => {
+    navigation.setOptions({
       headerRight: () => (
-          <Image
-              source={require('./assets/check.png')}
-              style={{ width: 30, height: 30, marginRight: 15 }}
-              onTouchEnd={updateUserInfo}
-          />
+        <Image
+          source={require('./assets/check.png')}
+          style={{ width: 30, height: 30, marginRight: 15 }}
+          onTouchEnd={updateUserInfo}
+        />
       ),
-  });
-}, [firstname, lastname, username, phonenumber, housenumber, street, city]);
-  
+    });
+  }, [firstname, lastname, username, phonenumber, housenumber, street, city]);
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={{ padding: 20 }}>
-        
         <View style={styles.namecontainer}>
           <View style={styles.firstnamecontainer}>
             <Text style={styles.inputtitle}>First Name</Text>
@@ -109,7 +98,7 @@ useEffect(() => {
             />
           </View>
         </View>
-        
+
         <Text style={styles.inputtitle}>Username</Text>
         <TextInput
           style={styles.input}
@@ -166,7 +155,9 @@ useEffect(() => {
       </ScrollView>
     </View>
   );
-}
+};
+
+export default EditScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -174,28 +165,9 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#f5f5f5',
   },
-  titlecontainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    borderColor: '#ddd',
-    borderBottomWidth: 2,
-    height: 60,
-    marginBottom: 25,
-  },
-  icontitle: {
-    color: 'black',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    flex: 1,
-  },
   namecontainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   },
   firstnamecontainer: {
     flex: 1.8,
@@ -206,7 +178,7 @@ const styles = StyleSheet.create({
   },
   addresscontainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   },
   housenumbercontainer: {
     flex: 1.4,
@@ -218,8 +190,7 @@ const styles = StyleSheet.create({
   inputtitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    textAlign: 'left',
-    marginBottom: 10
+    marginBottom: 10,
   },
   input: {
     height: 40,

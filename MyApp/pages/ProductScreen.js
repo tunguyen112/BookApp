@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView, View, FlatList, TouchableOpacity, Text, Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
 
-export default function PageProduct({ route }) {
+const ProductScreen = ({ route }) => {
   const { category } = route.params;
   const navigation = useNavigation();
   const [books, setBooks] = useState([]);
@@ -11,8 +12,8 @@ export default function PageProduct({ route }) {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/books`);
-        const data = await response.json();
+        const response = await axios.get('http://localhost:5000/api/books');
+        const data = response.data;
         setBooks(data.filter(book => book.category === category));
       } catch (error) {
         console.error('Error fetching books:', error);
@@ -25,7 +26,7 @@ export default function PageProduct({ route }) {
   }, [category]);
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('PageBook', { bookId: item.bookId })}>
+    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('BookScreen', { bookId: item.bookId })}>
       <Image source={{ uri: item.image }} style={styles.cardImage} />
       <Text style={styles.cardTitle}>{item.title}</Text>
       <Text style={styles.cardPrice}>{item.price.toLocaleString()} VND</Text>
@@ -35,17 +36,16 @@ export default function PageProduct({ route }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.tabBar}>
-      
         <TouchableOpacity style={styles.button} onPress={() => navigation.goBack()}>
           <Image source={require('./assets/previous.png')} style={{ width: 30, height: 30 }} />
         </TouchableOpacity>
-        
+
         <View style={styles.iconContainer}>
           <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Search')}>
             <Image source={require('./assets/search.png')} style={{ width: 30, height: 30 }} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Carts')}>
+          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('CartScreen')}>
             <Image source={require('./assets/grocery-store.png')} style={{ width: 30, height: 30 }} />
           </TouchableOpacity>
 
@@ -54,7 +54,9 @@ export default function PageProduct({ route }) {
           </TouchableOpacity>
         </View>
       </View>
+
       <Text style={styles.categoryTitle}>{category}</Text>
+
       <FlatList
         data={books}
         renderItem={renderItem}
@@ -62,7 +64,9 @@ export default function PageProduct({ route }) {
       />
     </SafeAreaView>
   );
-}
+};
+
+export default ProductScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -89,7 +93,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   card: {
-    flex: 1, 
+    flex: 1,
     backgroundColor: '#fff',
     borderRadius: 10,
     padding: 10,

@@ -27,9 +27,8 @@ router.post('/add', async (req, res) => {
         }
 
         await cart.save();
-        res.status(200).json(cart);
+        res.status(200).json({ items: cart.cartItems });
     } catch (error) {
-        console.error("Error adding to cart:", error);
         res.status(500).json({ message: "Server Error", error: error.message });
     }
 });

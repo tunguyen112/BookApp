@@ -2,8 +2,9 @@
 import { View, Text, Button, TextInput, StyleSheet, SafeAreaView, TouchableOpacity, Alert, Image } from 'react-native';
 import { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
 
-export default function PageRegister() {
+const RegisterScreen = () => {
   const navigation = useNavigation();
   const [firstname, ganFirstname] = useState('');
   const [lastname, ganLastname] = useState('');
@@ -17,55 +18,48 @@ export default function PageRegister() {
 
   const themNguoiDung = async () => {
     if (!firstname || !lastname || !username || !email || !password) {
-        Alert.alert('Thông báo', 'Vui lòng nhập đầy đủ thông tin.');
-        return;
+      Alert.alert('Thông báo', 'Vui lòng nhập đầy đủ thông tin.');
+      return;
     }
-
+  
     try {
-        const response = await fetch('http://localhost:5000/api/user/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                firstname,
-                lastname,
-                username,
-                email,
-                phonenumber,
-                housenumber,
-                street,
-                city,
-                password
-            })
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-            Alert.alert('Thông báo', result.message, [
-                { text: 'OK', onPress: () => navigation.navigate('Login') }
-            ]);
-
-            // Reset dữ liệu nhập
-            ganFirstname('');
-            ganLastname('');
-            ganUsername('');
-            ganEmail('');
-            ganphonenumber('');
-            ganHousenumber('');
-            ganStreet('');
-            ganCity('');
-            ganPassword('');
-        } else {
-            Alert.alert('Lỗi', result.message);
-        }
+      const response = await axios.post('http://localhost:5000/api/user/register', {
+        firstname,
+        lastname,
+        username,
+        email,
+        phonenumber,
+        housenumber,
+        street,
+        city,
+        password
+      });
+  
+      const result = response.data;
+  
+      Alert.alert('Thông báo', result.message, [
+        { text: 'OK', onPress: () => navigation.navigate('LoginScreen') }
+      ]);
+  
+      ganFirstname('');
+      ganLastname('');
+      ganUsername('');
+      ganEmail('');
+      ganphonenumber('');
+      ganHousenumber('');
+      ganStreet('');
+      ganCity('');
+      ganPassword('');
+      
     } catch (error) {
+      if (error.response) {
+        Alert.alert('Lỗi', error.response.data.message || 'Đã xảy ra lỗi khi đăng ký.');
+      } else {
         console.error("Lỗi khi đăng ký:", error);
         Alert.alert('Lỗi', 'Không thể kết nối đến server.');
+      }
     }
-};
-
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -167,6 +161,8 @@ export default function PageRegister() {
     </SafeAreaView>
   );
 }
+
+export default RegisterScreen;
 
 const styles = StyleSheet.create({
   container: {

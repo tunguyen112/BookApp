@@ -2,21 +2,22 @@ import React, { useContext, useEffect, useState } from 'react';
 import { SafeAreaView, View, TouchableOpacity, Text, Image, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { UserContext } from './UserContext';
+import axios from 'axios';
 
-export default function PageBook({ route }) {
+const BookScreen = ({ route }) => {
   const { bookId } = route.params;
   const navigation = useNavigation();
   const { user, setUser } = useContext(UserContext);
   const { carts, setCarts } = useContext(UserContext);
   const [selectedBook, setSelectedBook] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBookDetails = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/books/${bookId}`); 
-        const data = await response.json();
-        setSelectedBook(data);
+        const response = await axios.get(`http://localhost:5000/api/books/${bookId}`);
+        setSelectedBook(response.data);
       } catch (err) {
         setError('Không thể tải dữ liệu sách.');
       } finally {
@@ -40,46 +41,38 @@ export default function PageBook({ route }) {
       Alert.alert('Lỗi', 'Bạn cần đăng nhập để thêm vào giỏ hàng.');
       return;
     }
-  
+
     try {
-      const response = await fetch('http://localhost:5000/api/cart/add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: user.email,
-          bookId: selectedBook.bookId,
-          quantity: 1,
-        }),
+      const response = await axios.post('http://localhost:5000/api/cart/add', {
+        email: user.email,
+        bookId: selectedBook.bookId,
+        quantity: 1,
       });
-  
-      const data = await response.json();
-      if (response.ok) {
-        setCarts(data.items);
+
+      if (response.status === 200) {
+        setCarts(response.data.cartItems);
         Alert.alert('Thành công', 'Sản phẩm đã được thêm vào giỏ hàng.');
       } else {
-        Alert.alert('Lỗi', data.message || 'Không thể thêm vào giỏ hàng.');
+        Alert.alert('Lỗi', response.data.message || 'Không thể thêm vào giỏ hàng.');
       }
     } catch (error) {
-      Alert.alert('Lỗi', 'Có lỗi xảy ra khi thêm vào giỏ hàng.');
+      //Alert.alert('Lỗi', 'Có lỗi xảy ra khi thêm vào giỏ hàng.');
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.tabBar}>
-
         <TouchableOpacity style={styles.button} onPress={() => navigation.goBack()}>
           <Image source={require('./assets/previous.png')} style={{ width: 30, height: 30 }} />
         </TouchableOpacity>
-        
+
         <View style={styles.iconContainer}>
           <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Search')}>
             <Image source={require('./assets/search.png')} style={{ width: 30, height: 30 }} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Carts')}>
+          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('CartScreen')}>
             <Image source={require('./assets/grocery-store.png')} style={{ width: 30, height: 30 }} />
           </TouchableOpacity>
 
@@ -88,6 +81,7 @@ export default function PageBook({ route }) {
           </TouchableOpacity>
         </View>
       </View>
+
       <View style={styles.card}>
         <Image source={{ uri: selectedBook.image }} style={styles.bookImage} />
         <Text style={styles.bookTitle}>{selectedBook.title}</Text>
@@ -114,7 +108,9 @@ export default function PageBook({ route }) {
       </View>
     </SafeAreaView>
   );
-}
+};
+
+export default BookScreen;
 
 const styles = StyleSheet.create({
   container: {

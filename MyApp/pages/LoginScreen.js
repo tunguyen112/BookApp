@@ -1,19 +1,11 @@
-
 import React, { useState, createRef, useContext } from 'react';
-import {
-  StyleSheet,
-  TextInput,
-  View,
-  Text,
-  Image,
-  ScrollView,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Alert,
-} from 'react-native';
+import { StyleSheet, TextInput, View, Text, Image, ScrollView, TouchableOpacity, KeyboardAvoidingView, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { UserContextProvider, UserContext } from './UserContext.js'; 
+import axios from 'axios';
 
-const PageLogin = ({ navigation }) => {
+const LoginScreen = () => {
+  const navigation = useNavigation();
   const { setuser } = useContext(UserContext);
   const [email, setemail] = useState('');
   const [password, setpassword] = useState('');
@@ -27,24 +19,25 @@ const PageLogin = ({ navigation }) => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/user/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+      const response = await axios.post('http://localhost:5000/api/user/login', {
+        email,
+        password,
       });
-      const result = await response.json();
 
-      if (response.ok) {
-        setuser({ email, username: result.username });
-        Alert.alert('Thành công', `Chào mừng, ${result.username}!`, [
-          { text: 'OK', onPress: () => navigation.navigate('Home') },
-        ]);
-      } else {
-        Alert.alert('Lỗi', result.message || 'Đăng nhập thất bại');
-      }
+      const result = response.data;
+
+      setuser({ email, username: result.username });
+      Alert.alert('Thành công', `Chào mừng, ${result.username}!`, [
+        { text: 'OK', onPress: () => navigation.navigate('Home') },
+      ]);
+      
     } catch (error) {
-      console.error('Lỗi khi đăng nhập:', error);
-      Alert.alert('Lỗi', 'Không thể kết nối đến máy chủ');
+      if (error.response && error.response.data) {
+        Alert.alert('Lỗi', error.response.data.message || 'Đăng nhập thất bại');
+      } else {
+        console.error('Lỗi khi đăng nhập:', error);
+        Alert.alert('Lỗi', 'Không thể kết nối đến máy chủ');
+      }
     }
   };
 
@@ -62,16 +55,11 @@ const PageLogin = ({ navigation }) => {
                   style={styles.logoStyle}
               />
 
-              <Text
-                style={styles.welcomestyle}>
-                Welcome
-              </Text>
+              <Text style={styles.welcomestyle}>Welcome</Text>
 
               <View style={styles.SectionStyle}>
                 <View style={styles.inputContainer}>
-
                   <Image source={require('./assets/email.png')} style={styles.icon} />
-
                   <TextInput
                     style={styles.inputStyle}
                     onChangeText={setemail}
@@ -86,15 +74,12 @@ const PageLogin = ({ navigation }) => {
                     underlineColorAndroid="#f000"
                     blurOnSubmit={false}
                   />
-
                 </View>
               </View>
 
               <View style={styles.SectionStyle}>
                 <View style={styles.inputContainer}>
-
-                <Image source={require('./assets/padlock.png')} style={styles.icon} />
-
+                  <Image source={require('./assets/padlock.png')} style={styles.icon} />
                   <TextInput
                     style={styles.inputStyle}
                     onChangeText={setpassword}
@@ -106,7 +91,6 @@ const PageLogin = ({ navigation }) => {
                     underlineColorAndroid="#f000"
                     returnKeyType="next"
                   />
-
                 </View>
               </View>
 
@@ -114,13 +98,11 @@ const PageLogin = ({ navigation }) => {
                 <Text style={styles.errorTextStyle}>{errortext}</Text>
               ) : null}
 
-              <Text
-                style={styles.forgotstyle}
-                
+              <Text style={styles.forgotstyle}
                 onPress={() => {
-                setemail('');
-                setpassword('');
-                navigation.navigate('Resetpassword')}}>
+                  setemail('');
+                  setpassword('');
+                  navigation.navigate('ResetpasswordScreen')}}>
                 Forgot password?
               </Text>
 
@@ -131,31 +113,20 @@ const PageLogin = ({ navigation }) => {
                 <Text style={styles.buttonTextStyle}>LOG IN</Text>
               </TouchableOpacity>
 
-              <Text style={styles.loginwithstyle}>
-                Or login with
-              </Text>
+              <Text style={styles.loginwithstyle}>Or login with</Text>
 
               <View style={styles.signupcontainer}>
-                <Image
-                    source={require('./assets/FB.png')} 
-                    style={styles.logosignupStyle}
-                />
-                <Image
-                  source={require('./assets/GG.png')} 
-                  style={styles.logosignupStyle}
-                />
+                <Image source={require('./assets/FB.png')} style={styles.logosignupStyle} />
+                <Image source={require('./assets/GG.png')} style={styles.logosignupStyle} />
               </View>
               
               <View style={styles.signupcontainer}>
-                <Text style={styles.registerTextStyle}>
-                  Don't have an account? 
-                </Text>
-                <Text
-                  style={styles.registerTextStyle1}
+                <Text style={styles.registerTextStyle}>Don't have an account?</Text>
+                <Text style={styles.registerTextStyle1}
                   onPress={() => {
-                  setemail('');
-                  setpassword('');
-                  navigation.navigate('Register')}}>
+                    setemail('');
+                    setpassword('');
+                    navigation.navigate('RegisterScreen')}}>
                   Sign up here!
                 </Text>
               </View>
@@ -168,7 +139,7 @@ const PageLogin = ({ navigation }) => {
   );
 };
 
-export default PageLogin;
+export default LoginScreen;
 
 const styles = StyleSheet.create({
   mainBody: {
