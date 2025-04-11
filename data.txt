@@ -1,0 +1,182 @@
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 1,
+         "category": "Tiểu thuyết",
+         "title": "Đại Gia Gatsby",
+         "price": 150000,
+         "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933039/bookstore/jjwytrrmwrgyzauwsbfr.jpg",
+         "description": "Một tiểu thuyết do nhà văn F. Scott Fitzgerald viết."
+     }'
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 2,
+   "category": "Phi Hư Cấu",
+   "title": "Sapiens: Lược Sử Loài Người",
+   "price": 250000,
+   "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933039/bookstore/m0hh4u6qtqop8c1epmec.jpg",
+   "description": "Cuốn sách của Yuval Noah Harari nói về lịch sử loài người."
+     }'
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 3,
+   "category": "Khoa học viễn tưởng",
+   "title": "Dune",
+   "price": 180000,
+   "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933040/bookstore/uk5pgpr2nqniefb6gloe.jpg",
+   "description": "Một tiểu thuyết khoa học viễn tưởng của Frank Herbert."
+     }'
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 4,
+   "category": "Kinh doanh",
+   "title": "Cha Giàu Cha Nghèo",
+   "price": 190000,
+   "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933038/bookstore/vpw9bhxr31ammue4fdxx.jpg",
+   "description": "Cuốn sách về tài chính cá nhân của Robert Kiyosaki."
+     }'
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 5,
+   "category": "Kỹ năng sống",
+   "title": "Đắc Nhân Tâm",
+   "price": 160000,
+   "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933038/bookstore/nazaenhdjk8psimdgejy.jpg",
+   "description": "Cuốn sách của Dale Carnegie về giao tiếp hiệu quả."
+     }'
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 6,
+   "category": "Tiểu thuyết",
+   "title": "Giết Con Chim Nhại",
+   "price": 170000,
+   "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933039/bookstore/xbxgs7kc03ep6ut6gppy.jpg",
+   "description": "Một tiểu thuyết của Harper Lee về công lý xã hội."
+     }'
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 7,
+   "category": "Khoa học viễn tưởng",
+   "title": "Người Sao Hỏa",
+   "price": 210000,
+   "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933038/bookstore/nodntfazcpladdoxmvsm.jpg",
+   "description": "Tiểu thuyết về sinh tồn trên sao Hỏa của Andy Weir."
+     }'
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 8,
+   "category": "Tiểu thuyết",
+   "title": "1984",
+   "price": 180000,
+   "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933038/bookstore/p6e72cjvwnh4jr5azqwq.jpg",
+   "description": "Tiểu thuyết viễn tưởng của George Orwell."
+     }'
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 9,
+   "category": "Kỳ ảo",
+   "title": "Harry Potter và Hòn Đá Phù Thủy",
+   "price": 200000,
+   "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933041/bookstore/r8oovolgosrk86d7klxj.jpg",
+   "description": "Cuốn đầu tiên trong bộ truyện Harry Potter của J.K. Rowling."
+     }'
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 10,
+   "category": "Hồi ký",
+   "title": "Becoming - Chất Michelle",
+   "price": 240000,
+   "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933038/bookstore/jms5mu4rv9z17wwxrkwl.webp",
+   "description": "Hồi ký của Michelle Obama về cuộc đời và trải nghiệm của bà."
+     }'
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 11,
+   "category": "Kỳ ảo",
+   "title": "Người Hobbit",
+   "price": 190000,
+   "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933038/bookstore/db88byhj9nipwhfa46qe.jpg",
+   "description": "Tiểu thuyết kỳ ảo của J.R.R. Tolkien về chuyến phiêu lưu của Bilbo Baggins."
+     }'
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 12,
+   "category": "Phi hư cấu",
+   "title": "Thói Quen Nguyên Tử",
+   "price": 220000,
+   "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933038/bookstore/yrg26u0tapg88qmzqmwh.webp",
+   "description": "Cuốn sách của James Clear về xây dựng thói quen tốt."
+     }'
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 13,
+   "category": "Tiểu thuyết",
+   "title": "Kiêu Hãnh và Định Kiến",
+   "price": 150000,
+   "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933037/bookstore/dcqhvwv12waltvcmlkhx.jpg",
+   "description": "Một tác phẩm kinh điển của Jane Austen về tình yêu và xã hội."
+     }'
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 14,
+   "category": "Khoa học viễn tưởng",
+   "title": "Cuộc Chiến Của Ender",
+   "price": 200000,
+   "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933038/bookstore/amxtkyvgxu4gthd2kdrr.webp",
+   "description": "Tiểu thuyết về thiên tài quân sự trẻ tuổi của Orson Scott Card."
+     }'
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 15,
+   "category": "Kinh doanh",
+   "title": "Khởi Nghiệp Tinh Gọn",
+   "price": 250000,
+   "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933039/bookstore/kadqsesdx12jluyt05ul.webp",
+   "description": "Cuốn sách của Eric Ries về khởi nghiệp thành công."
+     }'
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 16,
+   "category": "Hồi ký",
+   "title": "Steve Jobs",
+   "price": 270000,
+   "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933038/bookstore/nqv35od7peqfgq0ajuzu.jpg",
+   "description": "Hồi ký của Steve Jobs được viết bởi Walter Isaacson."
+     }'
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 17,
+   "category": "Kỹ năng sống",
+   "title": "Sức Mạnh Hiện Tại",
+   "price": 180000,
+   "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933038/bookstore/pi9cmfcjy5z3zrocvhny.webp",
+   "description": "Cuốn sách của Eckhart Tolle về sống trong hiện tại."
+     }'
+curl -X POST http://localhost:5000/api/books/add \
+     -H "Content-Type: application/json" \
+     -d '{
+         "bookId": 18,
+   "category": "Kỳ ảo",
+   "title": "Chúa Tể Những Chiếc Nhẫn",
+   "price": 290000,
+   "image": "https://res.cloudinary.com/dko7t7nkw/image/upload/v1741933038/bookstore/bheaeehqn8gvogvmbwxv.webp",
+   "description": "Tập đầu trong bộ ba huyền thoại của J.R.R. Tolkien."
+     }'
+
+
